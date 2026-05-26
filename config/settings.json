@@ -1,0 +1,33 @@
+{
+  "llm": {
+    "default_backend": "local",
+    "local_model_path": "models/llama-3-8b-q4_k_m.gguf",
+    "local_context_size": 4096,
+    "local_threads": 4,
+    "local_gpu_layers": 0,
+    "cloud_model": "claude-opus-4-5",
+    "cloud_burst_threshold": 0.8,
+    "max_tokens": 512,
+    "temperature": 0.75
+  },
+  "memory": {
+    "profile_path": "data/profiles/lou.json",
+    "vector_db_path": "data/vector_store",
+    "max_session_messages": 20,
+    "max_context_memories": 5,
+    "embedding_model": "all-MiniLM-L6-v2"
+  },
+  "response": {
+    "target_latency_ms": 2000,
+    "stream": true
+  },
+  "hardware": {
+    "button_pin": 17,
+    "haptic_pin": 27,
+    "session_timeout_minutes": 60,
+    "warning_at_minutes": 55
+  },
+  "logging": {
+    "level": "WARNING"
+  }
+}

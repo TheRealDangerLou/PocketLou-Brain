@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "pocket-lou-brain"
+version = "0.1.0"
+description = "The intelligence layer for Pocket Lou — a one-of-one personal AI device."
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.26.0",
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+local = [
+    "llama-cpp-python>=0.2.0",
+]
+memory = [
+    "chromadb>=0.5.0",
+    "sentence-transformers>=3.0.0",
+]
+voice = [
+    "openai-whisper",
+]
+full = [
+    "pocket-lou-brain[local,memory,voice]",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[project.scripts]
+pocket-lou = "main:cli"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["brain*", "voice*", "hardware*"]

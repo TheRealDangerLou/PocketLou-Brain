@@ -1,0 +1,46 @@
+{
+  "modes": {
+    "STANDARD": {
+      "description": "Full Lou profile loaded, ready for anything",
+      "haptic_on_switch": "mode_switch",
+      "prefer_local": true,
+      "max_tokens": 512,
+      "temperature": 0.75
+    },
+    "ACTIVE_LISTEN": {
+      "description": "Absorb everything, coach passively, respond minimally",
+      "haptic_on_switch": "mode_switch",
+      "prefer_local": true,
+      "max_tokens": 150,
+      "temperature": 0.6
+    },
+    "TRANSLATION": {
+      "description": "Real-time translation — whispers in ear",
+      "haptic_on_switch": "mode_switch",
+      "prefer_local": false,
+      "max_tokens": 200,
+      "temperature": 0.3
+    },
+    "ACTOR": {
+      "description": "Script, audition, character, casting lens",
+      "haptic_on_switch": "mode_switch",
+      "prefer_local": true,
+      "max_tokens": 600,
+      "temperature": 0.8
+    },
+    "EPIPHANY": {
+      "description": "Full brainstorm partner — never shuts ideas down",
+      "haptic_on_switch": "mode_switch",
+      "prefer_local": false,
+      "max_tokens": 800,
+      "temperature": 0.95
+    },
+    "CONSPIRACY": {
+      "description": "Unrestricted research and rabbit hole exploration",
+      "haptic_on_switch": "mode_switch",
+      "prefer_local": false,
+      "max_tokens": 800,
+      "temperature": 0.85
+    }
+  }
+}

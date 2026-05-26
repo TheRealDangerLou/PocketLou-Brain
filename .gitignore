@@ -1,0 +1,52 @@
+# Environment — secrets live here, never commit
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Models — large binary files (4–7GB each), download separately
+# See docs/download_model.md
+brain/models/*.gguf
+brain/models/*.bin
+brain/models/*.pt
+
+# Vector store — generated locally, not committed
+brain/memory/store/
+data/vector_store/
+
+# Session transcripts — private
+data/sessions/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Pytest cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/

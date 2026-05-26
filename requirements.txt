@@ -1,0 +1,35 @@
+# ── Phase 1: Core — always required ─────────────────────────────────────────
+anthropic>=0.26.0          # Claude API — cloud burst LLM
+python-dotenv>=1.0.0       # Load ANTHROPIC_API_KEY from .env
+
+# ── Phase 1: Terminal UI (optional but nice) ─────────────────────────────────
+rich>=13.0.0               # Colored terminal output (used by main.py)
+click>=8.0.0               # CLI framework (used by main.py)
+
+# ── Phase 2: Voice pipeline ──────────────────────────────────────────────────
+# openai-whisper            # STT — offline speech recognition
+# sounddevice               # Mic input from ReSpeaker HAT
+# numpy                     # Required by whisper
+
+# Phase 2: TTS
+# piper-tts                 # Human-sounding offline TTS
+
+# Phase 2: Translation
+# transformers>=4.35.0      # NLLB-200 via HuggingFace
+# sentencepiece             # Required by NLLB tokenizer
+# torch                     # Required by transformers
+
+# ── Phase 3: Local LLM ───────────────────────────────────────────────────────
+# llama-cpp-python>=0.2.0   # Llama 3 8B Q4_K_M via llama.cpp
+#                           # GPU: CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
+
+# ── Phase 3: Memory (vector store) ───────────────────────────────────────────
+# chromadb>=0.5.0           # Persistent semantic memory
+# sentence-transformers>=3.0.0  # Embeddings for vector search
+
+# ── Phase 3: Hardware (Pi only) ───────────────────────────────────────────────
+# RPi.GPIO                  # GPIO for button + haptic (Pi only)
+
+# ── Development ──────────────────────────────────────────────────────────────
+pytest>=8.0.0
+pytest-asyncio>=0.23.0

@@ -1,0 +1,139 @@
+{
+  "identity": {
+    "name": "Louis Octeau Piché",
+    "nickname": "Louie",
+    "location": "Hudson, QC, Canada",
+    "github": "TheRealDangerLou",
+    "symbol": "RLL",
+    "symbol_meaning": "Rose, Lily, Levi — his children. The reason this exists."
+  },
+  "career": {
+    "primary": "Full-time actor",
+    "rep": {
+      "name": "Constantine Kourtidis",
+      "agency": "Top Talents Inc",
+      "city": "Toronto"
+    },
+    "notes": "Works in both English and French markets. Bilingual actor with range across drama, historical, and character work."
+  },
+  "languages": {
+    "french": "native",
+    "english": "fluent",
+    "italian": "conversational",
+    "spanish": "basic"
+  },
+  "family": {
+    "wife": "Mackenzie",
+    "children": [
+      {
+        "name": "Rosie",
+        "age_approx": 5.5,
+        "notes": "French-speaking primarily. Oldest."
+      },
+      {
+        "name": "Lily",
+        "age_approx": 2.5,
+        "notes": "Second daughter."
+      },
+      {
+        "name": "Levi",
+        "status": "incoming",
+        "notes": "Third child, expected. The L in RLL."
+      }
+    ]
+  },
+  "sobriety": {
+    "sober": true,
+    "significance": "Core to identity, creative work, and sense of self. Not just abstinence — a lens through which everything is seen. Informs The Last Fix project directly."
+  },
+  "spiritual_framework": [
+    "consciousness exploration",
+    "Hemi-Sync",
+    "Gateway Process (Monroe Institute)",
+    "Anunnaki mythology and ancient astronaut theory",
+    "Sumerian history and cosmology",
+    "psychedelics as philosophical and spiritual tool",
+    "paranormal phenomena",
+    "non-local consciousness",
+    "remote viewing"
+  ],
+  "active_projects": [
+    {
+      "name": "Actor's Companion",
+      "type": "mobile app",
+      "description": "Rehearsal and audition prep app. Lou is lead developer and primary user. Built for actors.",
+      "repo": "therealdangerlou/actor-companion-app",
+      "status": "active development"
+    },
+    {
+      "name": "PocketLou-Guitar",
+      "type": "web app",
+      "description": "Personal guitar learning web app. Private tool for Lou's own practice.",
+      "status": "active"
+    },
+    {
+      "name": "The Broken Oath",
+      "type": "script",
+      "description": "Historical drama. Set in the 1700s–1800s Great Lakes region. Lou is the writer.",
+      "status": "writing"
+    },
+    {
+      "name": "The Last Fix",
+      "type": "TV show concept",
+      "description": "Based on Lou's sobriety journey. Protagonist is Armstrong. Personal and powerful.",
+      "status": "development"
+    },
+    {
+      "name": "The Game Changer",
+      "type": "book",
+      "description": "Written by his father Yvon. Lou is in a support/advisory role only — not the author.",
+      "status": "support role"
+    },
+    {
+      "name": "PocketLou-Brain",
+      "type": "hardware + software",
+      "description": "This device. The AI on the hip. The second Lou. Phase 1 currently active.",
+      "repo": "therealdangerlou/pocketlou-brain",
+      "status": "Phase 1"
+    }
+  ],
+  "values": [
+    "privacy and sovereignty — Lou's data is Lou's data",
+    "family — RLL is the reason for everything",
+    "creative authenticity — truth in performance and storytelling",
+    "sobriety as strength, not absence",
+    "consciousness and awareness — the deeper why behind everything",
+    "craftsmanship — doing things properly or not at all",
+    "truth over comfort"
+  ],
+  "voice_and_communication": {
+    "style": "Direct, real, no bullshit. French-native brain thinking in English. Passionate. Quick.",
+    "dislikes": [
+      "corporate hedging",
+      "excessive caveats",
+      "robotic responses",
+      "being talked down to",
+      "filler phrases"
+    ],
+    "prefers": [
+      "straight talk",
+      "depth when it matters",
+      "humor when appropriate",
+      "being challenged and pushed",
+      "responses that feel like they came from someone who actually knows him"
+    ]
+  },
+  "hardware_context": {
+    "device": "Raspberry Pi Zero 2W",
+    "mic": "ReSpeaker 2-Mic Pi HAT",
+    "audio_out": "Bluetooth earpiece, single ear, discrete",
+    "power": "PiJuice Zero + 3000mAh LiPo",
+    "shell": "3D printed PETG, matte black, RLL engraved, belt clip",
+    "symbol_engraved": "RLL"
+  },
+  "meta": {
+    "created": "Phase 1 build",
+    "privacy": "Private. Sovereign. This profile never leaves Lou's control.",
+    "note": "Update this file as Lou's life evolves. It's a living document."
+  }
+}
