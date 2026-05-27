@@ -1,8 +1,62 @@
-# PocketLou-Brain
+# POCKET LOU — BRAIN
 
-The intelligence layer for Pocket Lou — a private, sovereign AI device built for one operator: Louis Octeau Piché.
+**Classification: TOP SECRET // EYES ONLY // TheRealDangerLou**
 
-**Current phase: Phase 1 — Brain (Desktop)**
+One-of-one. Personal sovereign AI for Louis Octeau Piché.  
+Built to be worn on the hip on a Raspberry Pi Zero 2W.  
+RLL — Rose, Lily, Levi. That's why this exists.
+
+---
+
+## Architecture — God-tier upgrade (v0.2)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    POCKET LOU BRAIN                     │
+│                   brain/brain.py                        │
+└────────────────────────┬────────────────────────────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         ▼               ▼               ▼
+  ┌─────────────┐ ┌────────────┐ ┌──────────────────┐
+  │  Persona    │ │ LLM Router │ │  Long-Term Memory │
+  │  + Profile  │ │ router.py  │ │  ChromaDB + embeds│
+  └─────────────┘ └─────┬──────┘ └──────────────────┘
+                        │
+         ┌──────────────┼──────────────┐
+         ▼              ▼              ▼
+  ┌────────────┐ ┌────────────┐ ┌────────────────┐
+  │ Perplexity │ │  GPT-4o-   │ │ Claude Sonnet  │
+  │ Web Search │ │   mini     │ │  (primary +    │
+  │ (live web) │ │  (fast)    │ │   fallback)    │
+  └────────────┘ └────────────┘ └────────────────┘
+```
+
+### Routing priority (per query)
+1. **Perplexity** — auto-triggered for live internet queries (news, scores, today's date, etc.)
+2. **GPT-4o-mini** — fast conversational replies, ACTIVE_LISTEN mode
+3. **Claude Sonnet** — actor, conspiracy, epiphany, reasoning, technical, default
+4. **Claude fallback** — always available if only `ANTHROPIC_API_KEY` is set
+
+### Long-term memory
+- **ChromaDB** vector store — persistent across all sessions
+- **Semantic search** — finds relevant memories by meaning, not keywords
+- **Auto-categorizes** into: acting, family, projects, spiritual, fitness, conspiracy, general
+- **Auto-injects** relevant memories into each system prompt
+- Degrades gracefully if `chromadb` / `sentence-transformers` not installed
+
+---
+
+## Operating Modes
+
+| Mode | LLM | Purpose |
+|---|---|---|
+| STANDARD | Claude Sonnet | Full Lou profile, ready for anything |
+| ACTIVE_LISTEN | GPT-4o-mini | Always absorbing, coaches passively |
+| TRANSLATION | Claude Sonnet | Real-time in ear, whispers response |
+| ACTOR | Claude Sonnet | Script, audition, character, casting lens |
+| EPIPHANY | Claude Sonnet | Full brainstorm partner, never shuts ideas down |
+| CONSPIRACY | Claude Sonnet | Unrestricted, no guardrails, full rabbit hole |
 
 ---
 
@@ -12,88 +66,70 @@ The intelligence layer for Pocket Lou — a private, sovereign AI device built f
 git clone https://github.com/TheRealDangerLou/PocketLou-Brain.git
 cd PocketLou-Brain
 
-bash scripts/install.sh
+pip install -r requirements.txt
 
 cp .env.example .env
-# Add your ANTHROPIC_API_KEY to .env
+# Edit .env — add ANTHROPIC_API_KEY (required)
+#             add OPENAI_API_KEY    (optional — enables GPT-4o-mini)
+#             add PERPLEXITY_API_KEY (optional — enables live web search)
 
-python main.py chat
-```
-
-## Modes
-
-| Mode | Use it for |
-|---|---|
-| `STANDARD` | Everything — full Lou context, ready for anything |
-| `ACTIVE_LISTEN` | Absorb and coach passively |
-| `TRANSLATION` | Real-time translation, whisper delivery |
-| `ACTOR` | Script, audition, character, casting |
-| `EPIPHANY` | Full brainstorm — no idea gets shut down |
-| `CONSPIRACY` | Unrestricted rabbit hole |
-
-Switch modes in chat: `/mode ACTOR`
-
-## CLI commands
-
-```
-/mode <MODE>      Switch operating mode
-/status           System status (LLM, memory, session)
-/remember <text>  Store something to long-term memory
-/clear            Clear current session
-/modes            List all modes
-/quit             Exit
-```
-
-## Architecture
-
-```
-brain/
-├── core.py           Main orchestrator (PocketLou class)
-├── llm/
-│   ├── local_llm.py  llama.cpp inference (Llama 3 8B Q4_K_M)
-│   ├── cloud_llm.py  Claude API (burst mode)
-│   └── router.py     Smart routing between local and cloud
-├── memory/
-│   ├── profile.py    Lou's profile loader and context manager
-│   ├── vector_store.py  ChromaDB semantic memory
-│   └── session.py    In-session conversation history
-├── modes/            Six operating modes with distinct prompts
-└── prompt/
-    └── builder.py    System prompt assembly
-
-voice/              Phase 2 stubs — Whisper STT + Piper TTS
-hardware/           Phase 3 stubs — GPIO button + haptic motor
-config/             Settings and mode configuration
-data/profiles/      Lou's profile (lou.json)
-```
-
-## Development phases
-
-- **Phase 1** — Brain (desktop) ← you are here
-- **Phase 2** — Voice pipeline (Whisper + Piper)
-- **Phase 3** — Port to Raspberry Pi Zero 2W
-- **Phase 4** — Physical shell (3D printed PETG, RLL engraved)
-- **Phase 5** — Memory and persona training
-- **Phase 6** — Private cloud sync + companion app
-
-## Local LLM setup
-
-Download the model (requires ~5GB):
-
-```bash
-mkdir -p models
-# Download Llama 3 8B Q4_K_M GGUF from HuggingFace
-# Place at: models/llama-3-8b-q4_k_m.gguf
-```
-
-Without the model file, the system automatically bursts to Claude API.
-
-## Running tests
-
-```bash
-pytest tests/ -v
+python brain/brain.py
+python brain/brain.py --mode ACTOR
 ```
 
 ---
 
-RLL — Rose, Lily, Levi. That's why this exists.
+## Terminal commands
+
+```
+/mode <MODE>     Switch operating mode
+/modes           List all modes
+/status          Full system status (backends, memory, web search)
+/memory          Memory stats
+/recall <query>  Search long-term memory
+/clear           Clear session history
+/quit            Exit
+```
+
+---
+
+## Project structure
+
+```
+PocketLou-Brain/
+├── brain/
+│   ├── brain.py              # Core orchestrator — main entry point
+│   ├── llm/
+│   │   ├── router.py         # Multi-model routing: Perplexity → OpenAI → Claude
+│   │   ├── model_selector.py # Query classifier + model picker
+│   │   ├── cloud_llm.py      # ClaudeClient + OpenAIClient
+│   │   └── web_search.py     # Perplexity API — live internet
+│   ├── memory/
+│   │   └── long_term_memory.py  # ChromaDB vector store
+│   └── persona/
+│       ├── system_prompt.py  # Build full system prompt per mode
+│       └── lou_profile.json  # Lou's full identity profile
+├── cloud/
+│   └── claude_api.py         # CloudBurst — backward compat wrapper
+├── config/
+│   └── settings.json         # All configurable settings
+├── tests/                    # 98 tests, all green
+├── .env.example              # Copy to .env, add your keys
+├── requirements.txt
+└── main.py
+```
+
+---
+
+## Development phases
+
+- **Phase 1** ✅ — Brain loop, multi-model routing, long-term memory, web search
+- **Phase 2** — Voice pipeline (Whisper STT + Piper TTS)
+- **Phase 3** — Port to Raspberry Pi Zero 2W, local Llama 3 8B
+- **Phase 4** — Physical shell (3D printed PETG, RLL engraved, belt clip)
+- **Phase 5** — Memory & persona deepening
+- **Phase 6** — Private cloud sync + Actor's Companion integration
+
+---
+
+RLL

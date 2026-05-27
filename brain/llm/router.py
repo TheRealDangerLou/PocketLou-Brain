@@ -1,90 +1,106 @@
 """
-LLM Router — decides local or cloud for each request.
+Multi-model LLM Router — God-tier upgrade.
 
-Default: try local first (privacy, speed, offline).
-Burst to cloud when local is unavailable or the mode demands it.
+Routing priority:
+  1. Web search (Perplexity) — if query needs live internet
+  2. GPT-4o-mini (OpenAI)    — fast conversational replies
+  3. Claude Sonnet            — reasoning, creative, actor, conspiracy
+  4. Claude fallback          — always available if ANTHROPIC_API_KEY is set
+
+Invisible to Lou. Just makes every answer better.
 """
 
 from __future__ import annotations
 
+import os
 import logging
+from typing import Optional
 
-from brain.llm.local_llm import LocalLLM
-from brain.llm.cloud_llm import CloudLLM
+from brain.llm.model_selector import ModelSelector
+from brain.llm.web_search import WebSearch
 
 logger = logging.getLogger(__name__)
 
-# These modes are complex enough to prefer cloud when available
-CLOUD_PREFERRED_MODES = {"TRANSLATION", "EPIPHANY", "CONSPIRACY"}
 
-# If user's message is longer than this, route to cloud
-COMPLEX_QUERY_THRESHOLD = 500
+class _LocalLLMStub:
+    """Phase 3 stub — Llama 3 not yet active."""
+    def is_available(self) -> bool:
+        return False
+    def load(self) -> bool:
+        return False
 
 
 class LLMRouter:
     """
-    Routes between local llama.cpp and Claude cloud API.
-    Returns (response_text, backend_name).
+    Routes each query to the optimal model.
+    Falls back gracefully when APIs are unavailable.
+    Returns (response_text, backend_label).
     """
 
-    def __init__(self, config: dict):
-        self.local = LocalLLM(config)
-        self.cloud = CloudLLM(config)
-        self._prefer_local = config["llm"].get("default_backend", "local") == "local"
-        self.local.load()
+    def __init__(self, config: Optional[dict] = None):
+        self._config = config or {}
+        self._selector = ModelSelector()
+        self._web_search = WebSearch()
+        self._claude: object = None
+        self._openai: object = None
+        self.local = _LocalLLMStub()
+
+    # ── Lazy client init ──────────────────────────────────────────────────────
+
+    def _claude_client(self):
+        if self._claude is None:
+            from brain.llm.cloud_llm import ClaudeClient
+            self._claude = ClaudeClient(self._config)
+        return self._claude
+
+    def _openai_client(self):
+        if self._openai is None:
+            from brain.llm.cloud_llm import OpenAIClient
+            self._openai = OpenAIClient()
+        return self._openai
+
+    # ── Main router ───────────────────────────────────────────────────────────
 
     def route(
         self,
         messages: list[dict],
         system_prompt: str,
-        mode: str,
+        mode: str = "STANDARD",
     ) -> tuple[str, str]:
-        use_cloud = self._should_use_cloud(messages, mode)
+        """
+        Route a query to the best available model.
+        Returns (response_text, backend_label).
+        """
+        last_msg = _last_user_message(messages)
 
-        if use_cloud:
-            return self._try_cloud(messages, system_prompt, fallback_to_local=True)
-
-        return self._try_local_then_cloud(messages, system_prompt)
-
-    def _try_local_then_cloud(
-        self, messages: list[dict], system_prompt: str
-    ) -> tuple[str, str]:
-        if self.local.is_available():
+        # ── Step 1: Live web search ───────────────────────────────────────────
+        if self._web_search.should_search(last_msg):
             try:
-                response = self.local.complete(messages, system_prompt)
-                return response, "local"
+                logger.info("Routing to Perplexity (web search)")
+                response = self._web_search.search(last_msg)
+                return response, "perplexity"
             except Exception as e:
-                logger.warning(f"Local LLM failed ({e}), bursting to cloud")
+                logger.warning(f"Web search failed ({e}) — falling back to LLM")
 
-        return self._try_cloud(messages, system_prompt, fallback_to_local=False)
+        # ── Step 2: Select model by query type + mode ─────────────────────────
+        model_id, provider = self._selector.select(last_msg, mode)
+        logger.info(f"Routing to {provider}/{model_id} (mode={mode})")
 
-    def _try_cloud(
-        self,
-        messages: list[dict],
-        system_prompt: str,
-        fallback_to_local: bool = False,
-    ) -> tuple[str, str]:
-        try:
-            response = self.cloud.complete(messages, system_prompt)
-            return response, "cloud"
-        except Exception as e:
-            logger.error(f"Cloud LLM failed: {e}")
-            if fallback_to_local and self.local.is_available():
-                logger.info("Falling back to local LLM")
-                response = self.local.complete(messages, system_prompt)
-                return response, "local"
-            raise
+        # ── Step 3: Call selected provider ────────────────────────────────────
+        if provider == "openai" and os.environ.get("OPENAI_API_KEY"):
+            try:
+                response = self._openai_client().complete(messages, system_prompt)
+                return response, f"openai/{model_id}"
+            except Exception as e:
+                logger.warning(f"OpenAI failed ({e}) — falling back to Claude")
 
-    def _should_use_cloud(self, messages: list[dict], mode: str) -> bool:
-        if not self._prefer_local:
-            return True
-        if not self.local.is_available():
-            return True
-        if mode in CLOUD_PREFERRED_MODES:
-            return True
-        last_user_msg = next(
-            (m["content"] for m in reversed(messages) if m["role"] == "user"), ""
-        )
-        if len(last_user_msg) > COMPLEX_QUERY_THRESHOLD:
-            return True
-        return False
+        # ── Step 4: Claude (default + universal fallback) ─────────────────────
+        response = self._claude_client().complete(messages, system_prompt)
+        return response, "anthropic/claude-sonnet-4-5"
+
+
+def _last_user_message(messages: list[dict]) -> str:
+    return next(
+        (m["content"] for m in reversed(messages) if m["role"] == "user"),
+        "",
+    )

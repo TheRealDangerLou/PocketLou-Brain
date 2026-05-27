@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 PocketLou Brain — Core Orchestrator Loop
-Phase 1: Terminal-testable with Claude API as cloud burst
+God-tier upgrade: multi-model routing + long-term memory + live web search
 
 Run from project root:
     python brain/brain.py
@@ -15,34 +15,56 @@ import json
 import os
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 # Ensure project root is on path when running this file directly
 ROOT = Path(__file__).parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from brain.persona.system_prompt import build_system_prompt, MODES
-from cloud.claude_api import CloudBurst
+from brain.llm.router import LLMRouter
+from brain.memory.long_term_memory import LongTermMemory
+
+
+@dataclass
+class ThinkResult:
+    response:   str
+    latency_ms: int
+    backend:    str
+    mode:       str
+    memories_injected: bool = False
 
 
 class PocketLouBrain:
     """
     The brain. One operator. RLL.
 
-    Phase 1  — Cloud burst via Claude API (you are here)
+    Phase 1  — Multi-model cloud (Claude Sonnet + GPT-4o-mini + Perplexity)
+    Phase 1  — Long-term memory (ChromaDB semantic store)
+    Phase 1  — Live web search (auto-triggered)
     Phase 2  — Voice pipeline (Whisper + Piper)
     Phase 3+ — Local-first (Llama 3 8B) with cloud fallback
     """
 
     def __init__(self, mode: str = "STANDARD"):
-        self.cloud = CloudBurst()
+        self.router = LLMRouter()
+        self.ltm    = LongTermMemory()
         self.history: list[dict] = []
         self.profile = self._load_profile()
         self.mode = "STANDARD"
         self.set_mode(mode)
+        self._last_backend = "—"
 
-    # ── Profile ─────────────────────────────────────────────────────────────
+    # ── Profile ──────────────────────────────────────────────────────────────
 
     def _load_profile(self) -> dict:
         path = Path(__file__).parent / "persona" / "lou_profile.json"
@@ -52,7 +74,7 @@ class PocketLouBrain:
             print(f"[warning] Profile not found: {path}")
             return {}
 
-    # ── Mode ────────────────────────────────────────────────────────────────
+    # ── Mode ─────────────────────────────────────────────────────────────────
 
     def set_mode(self, mode: str) -> None:
         mode = mode.upper()
@@ -62,24 +84,53 @@ class PocketLouBrain:
             )
         self.mode = mode
 
-    # ── Core think loop ──────────────────────────────────────────────────────
+    # ── Core think loop ───────────────────────────────────────────────────────
 
-    def think(self, user_input: str) -> tuple[str, int]:
+    def think(self, user_input: str) -> ThinkResult:
         """
-        The core function. One call = one full brain cycle.
-        Returns (response_text, latency_ms).
+        One call = one full brain cycle.
+
+        1. Build system prompt with Lou's full persona
+        2. Inject relevant long-term memories
+        3. Route to best model (web search / GPT-4o-mini / Claude Sonnet)
+        4. Store exchange in long-term memory
+        5. Return ThinkResult
         """
+        # Build base system prompt
         system = build_system_prompt(self.mode, self.profile)
+
+        # Inject relevant long-term memories
+        memory_context = self.ltm.inject_memories(user_input)
+        memories_injected = bool(memory_context)
+        if memory_context:
+            system += f"\n\n{memory_context}"
+
+        # Add user message to history
         self.history.append({"role": "user", "content": user_input})
 
+        # Route to best model
         start = time.monotonic()
-        response = self.cloud.complete(messages=self.history, system=system)
+        response, backend = self.router.route(
+            messages=self.history,
+            system_prompt=system,
+            mode=self.mode,
+        )
         latency_ms = int((time.monotonic() - start) * 1000)
 
+        # Store in session + long-term memory
         self.history.append({"role": "assistant", "content": response})
-        return response, latency_ms
+        self.ltm.store(user_input, response, mode=self.mode)
+        self._last_backend = backend
 
-    # ── Session ──────────────────────────────────────────────────────────────
+        return ThinkResult(
+            response=response,
+            latency_ms=latency_ms,
+            backend=backend,
+            mode=self.mode,
+            memories_injected=memories_injected,
+        )
+
+    # ── Session ───────────────────────────────────────────────────────────────
 
     def clear_session(self) -> None:
         self.history.clear()
@@ -89,14 +140,17 @@ class PocketLouBrain:
             "mode":               self.mode,
             "session_messages":   len(self.history),
             "profile_loaded":     bool(self.profile),
-            "backend":            "cloud — Claude API (Phase 1)",
+            "long_term_memories": self.ltm.count(),
+            "memory_available":   self.ltm.is_available(),
+            "web_search":         self.router._web_search.is_available(),
+            "last_backend":       self._last_backend,
         }
 
-    # ── Terminal loop ────────────────────────────────────────────────────────
+    # ── Terminal loop ─────────────────────────────────────────────────────────
 
     def run(self) -> None:
-        """Interactive terminal session. Phase 1 entry point."""
-        _print_banner(self.mode)
+        """Interactive terminal session."""
+        _print_banner(self.mode, self.ltm.count())
 
         while True:
             try:
@@ -114,18 +168,17 @@ class PocketLouBrain:
                 continue
 
             try:
-                response, ms = self.think(raw)
-                print(f"\nPocket Lou: {response}")
-                latency_flag = "✓" if ms < 2000 else "△" if ms < 4000 else "✗"
-                print(f"\n  {latency_flag} {ms}ms · {self.mode} · cloud")
+                result = self.think(raw)
+                print(f"\nPocket Lou: {result.response}")
+                _print_meta(result)
             except Exception as e:
                 print(f"\n[error] {e}")
 
     def _handle_command(self, raw: str) -> bool:
         """Handle /commands. Returns False to quit, True to continue."""
         parts = raw.split(None, 1)
-        cmd  = parts[0].lower()
-        arg  = parts[1].strip() if len(parts) > 1 else ""
+        cmd = parts[0].lower()
+        arg = parts[1].strip() if len(parts) > 1 else ""
 
         if cmd in ("/quit", "/exit", "/q"):
             print("\nShutting down. RLL.\n")
@@ -148,20 +201,38 @@ class PocketLouBrain:
                 print(f"  {marker} {m}")
 
         elif cmd == "/status":
-            for k, v in self.status().items():
+            s = self.status()
+            for k, v in s.items():
                 print(f"  {k}: {v}")
 
         elif cmd == "/clear":
             self.clear_session()
             print("Session cleared.")
 
+        elif cmd == "/memory":
+            print(f"  Long-term memories: {self.ltm.count()}")
+            print(f"  Available: {self.ltm.is_available()}")
+
+        elif cmd == "/recall":
+            if arg:
+                memories = self.ltm.recall(arg, n_results=5)
+                if not memories:
+                    print("  No relevant memories found.")
+                for m in memories:
+                    ts = m.get("timestamp", "")[:10]
+                    print(f"  [{ts}] {m['text'][:100]}...")
+            else:
+                print("  Usage: /recall <query>")
+
         elif cmd == "/help":
             print(
-                "  /mode <MODE>   Switch operating mode\n"
-                "  /modes         List all modes\n"
-                "  /status        System status\n"
-                "  /clear         Clear session history\n"
-                "  /quit          Exit"
+                "  /mode <MODE>     Switch operating mode\n"
+                "  /modes           List all modes\n"
+                "  /status          Full system status\n"
+                "  /memory          Memory stats\n"
+                "  /recall <query>  Search long-term memory\n"
+                "  /clear           Clear session history\n"
+                "  /quit            Exit"
             )
 
         else:
@@ -170,25 +241,31 @@ class PocketLouBrain:
         return True
 
 
-# ── Banner ───────────────────────────────────────────────────────────────────
+# ── Display helpers ───────────────────────────────────────────────────────────
 
-def _print_banner(mode: str) -> None:
-    print("\n" + "═" * 54)
-    print("  POCKET LOU — BRAIN  v0.1  [Phase 1 · Desktop]")
-    print(f"  Mode: {mode}")
+def _print_banner(mode: str, memory_count: int = 0) -> None:
+    print("\n" + "═" * 58)
+    print("  POCKET LOU — BRAIN  v0.2  [God-tier upgrade]")
+    print(f"  Mode: {mode}  |  Memories: {memory_count}")
     print("  RLL — Rose, Lily, Levi")
-    print("═" * 54)
-    print("  /mode <MODE>  /modes  /status  /clear  /quit  /help")
-    print("═" * 54)
+    print("═" * 58)
+    print("  /mode  /modes  /status  /memory  /recall  /clear  /quit")
+    print("═" * 58)
 
 
-# ── Entry point ──────────────────────────────────────────────────────────────
+def _print_meta(result: ThinkResult) -> None:
+    flag = "✓" if result.latency_ms < 2000 else "△" if result.latency_ms < 4000 else "✗"
+    mem  = " · mem" if result.memories_injected else ""
+    print(f"\n  {flag} {result.latency_ms}ms · {result.backend}{mem}")
+
+
+# ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Pocket Lou Brain — Phase 1 Terminal"
+        description="Pocket Lou Brain — God-tier upgrade"
     )
     parser.add_argument(
         "--mode", "-m",

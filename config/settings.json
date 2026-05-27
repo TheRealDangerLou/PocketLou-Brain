@@ -1,25 +1,32 @@
 {
   "llm": {
-    "default_backend": "local",
+    "default_backend": "cloud",
+    "cloud_model": "claude-sonnet-4-5",
+    "openai_model": "gpt-4o-mini",
+    "perplexity_model": "llama-3.1-sonar-large-128k-online",
     "local_model_path": "models/llama-3-8b-q4_k_m.gguf",
     "local_context_size": 4096,
     "local_threads": 4,
     "local_gpu_layers": 0,
-    "cloud_model": "claude-opus-4-5",
     "cloud_burst_threshold": 0.8,
-    "max_tokens": 512,
+    "max_tokens": 1024,
     "temperature": 0.75
   },
   "memory": {
-    "profile_path": "data/profiles/lou.json",
-    "vector_db_path": "data/vector_store",
+    "profile_path": "brain/persona/lou_profile.json",
+    "chroma_db_path": "./brain/memory/chroma_db",
     "max_session_messages": 20,
     "max_context_memories": 5,
     "embedding_model": "all-MiniLM-L6-v2"
   },
+  "web_search": {
+    "enabled": true,
+    "max_tokens": 300,
+    "timeout_seconds": 10
+  },
   "response": {
     "target_latency_ms": 2000,
-    "stream": true
+    "stream": false
   },
   "hardware": {
     "button_pin": 17,

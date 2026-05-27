@@ -1,31 +1,29 @@
 # ── Phase 1: Core — always required ─────────────────────────────────────────
-anthropic>=0.26.0          # Claude API — cloud burst LLM
-python-dotenv>=1.0.0       # Load ANTHROPIC_API_KEY from .env
+anthropic>=0.26.0          # Claude API — primary LLM (Sonnet)
+python-dotenv>=1.0.0       # Load keys from .env
+requests>=2.31.0           # HTTP client (Perplexity web search)
 
-# ── Phase 1: Terminal UI (optional but nice) ─────────────────────────────────
-rich>=13.0.0               # Colored terminal output (used by main.py)
-click>=8.0.0               # CLI framework (used by main.py)
+# ── God-tier upgrade: Multi-model + Memory + Web ─────────────────────────────
+openai>=1.0.0              # GPT-4o-mini — fast conversational replies
+chromadb>=0.5.0            # Persistent semantic memory (long-term)
+sentence-transformers>=3.0.0  # Embeddings for vector search (all-MiniLM-L6-v2)
+
+# ── Phase 1: Terminal UI ──────────────────────────────────────────────────────
+rich>=13.0.0               # Colored terminal output
+click>=8.0.0               # CLI framework
 
 # ── Phase 2: Voice pipeline ──────────────────────────────────────────────────
 # openai-whisper            # STT — offline speech recognition
 # sounddevice               # Mic input from ReSpeaker HAT
 # numpy                     # Required by whisper
-
-# Phase 2: TTS
 # piper-tts                 # Human-sounding offline TTS
-
-# Phase 2: Translation
-# transformers>=4.35.0      # NLLB-200 via HuggingFace
+# transformers>=4.35.0      # NLLB-200 translation via HuggingFace
 # sentencepiece             # Required by NLLB tokenizer
 # torch                     # Required by transformers
 
 # ── Phase 3: Local LLM ───────────────────────────────────────────────────────
 # llama-cpp-python>=0.2.0   # Llama 3 8B Q4_K_M via llama.cpp
 #                           # GPU: CMAKE_ARGS="-DGGML_CUDA=on" pip install llama-cpp-python
-
-# ── Phase 3: Memory (vector store) ───────────────────────────────────────────
-# chromadb>=0.5.0           # Persistent semantic memory
-# sentence-transformers>=3.0.0  # Embeddings for vector search
 
 # ── Phase 3: Hardware (Pi only) ───────────────────────────────────────────────
 # RPi.GPIO                  # GPIO for button + haptic (Pi only)
